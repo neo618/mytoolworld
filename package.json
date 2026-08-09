@@ -1,11 +1,11 @@
 {
   "name": "mytoolworld",
   "version": "1.0.0",
-  "description": "MyToolWorld - 个人插件化工作台",
+  "description": "我的工具世界 - 个人插件化工作台",
   "main": "electron/main.js",
   "build": {
     "appId": "com.mytoolworld.workbench",
-    "productName": "MyToolWorld",
+    "productName": "我的工具世界",
     "directories": {
       "output": "C:/mytool-release"
     },
@@ -28,12 +28,15 @@
             "x64"
           ]
         }
-      ]
+      ],
+      "icon": "public/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "shortcutName": "MyToolWorld"
+      "shortcutName": "我的工具世界",
+      "installerIcon": "public/icon.ico",
+      "uninstallerIcon": "public/icon.ico"
     }
   },
   "scripts": {
