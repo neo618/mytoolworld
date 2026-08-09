@@ -89,12 +89,12 @@ app.whenReady().then(() => {
         {
           label: '关于我的工具世界',
           click: () => {
-            dialog.showMessageBox(mainWindow, {
-              type: 'info',
-              title: '关于',
-              message: '我的工具世界 MyToolWorld',
-              detail: `版本 ${app.getVersion()}\n基于 Electron + Vue 3 构建的个人插件化工作台`
-            })
+            console.log('[About] Menu clicked, sending to renderer...')
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              mainWindow.webContents.send('app:showAbout')
+            } else {
+              console.log('[About] mainWindow not available!')
+            }
           }
         }
       ]

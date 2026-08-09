@@ -1,6 +1,6 @@
 {
   "name": "mytoolworld",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "我的工具世界 - 个人插件化工作台",
   "main": "electron/main.js",
   "build": {

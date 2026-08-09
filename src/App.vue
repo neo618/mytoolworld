@@ -1,6 +1,7 @@
 <template>
   <div class="app" :style="accentVars">
     <Sidebar />
+    <AboutDialog />
     <div class="main">
       <Topbar />
       <div class="content">
@@ -18,6 +19,7 @@
 import { computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Topbar from '@/components/Topbar.vue'
+import AboutDialog from '@/components/AboutDialog.vue'
 import { useAppStore } from '@/stores/app'
 
 const store = useAppStore()

@@ -1,8 +1,8 @@
 ﻿<template>
   <aside class="sidebar">
     <div class="sidebar-header">
-      <div class="logo">MW</div>
-      <span class="title">MyToolWorld</span>
+      <img src="/app-icon.png" alt="Logo" class="sidebar-logo" />
+      <span class="title">我的工具世界</span>
       <span class="version">v1.0</span>
     </div>
 
@@ -72,12 +72,9 @@ function isActive(path) { return route.path === path }
   display: flex; align-items: center; gap: 10px;
   border-bottom: 1px solid var(--border-light);
 }
-.logo {
+.sidebar-logo {
   width: 34px; height: 34px;
-  background: var(--accent);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 17px; color: #fff;
+  border-radius: 8px; object-fit: cover;
 }
 .title { font-size: 16px; font-weight: 600; }
 .version { font-size: 12px; color: var(--text-muted); margin-left: auto; }

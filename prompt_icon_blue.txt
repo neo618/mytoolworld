@@ -1,0 +1,11 @@
+App icon design: A minimal flat design app icon on a rounded square canvas with slightly rounded corners.
+
+Center composition: A glowing spark star (4-point star with soft gradient glow in warm coral-to-golden gradient) positioned at the top-center, representing AI intelligence and creative inspiration. Below it, three interlocking colorful rounded blocks/bricks (like toy building blocks or modular puzzle pieces) in soft coral pink, sky blue, and warm amber, representing a modular toolkit/library of components.
+
+The star and blocks subtly connect — a thin curved golden line or dotted path flows from the star down to the blocks, suggesting tool orchestration by AI.
+
+Background: Solid bright sky blue color, exact hex color #5092F4, vivid and clean. 
+Overall style: flat minimal, modern tech, vivid blue background, no heavy shadows, clean vector aesthetic, no text, no complex details, highly recognizable at small sizes, iOS/macOS app icon style.
+
+Negative space around the elements, balanced composition. 
+Quality: meticulously crafted, crisp edges, professional app icon design, minimal and bold.

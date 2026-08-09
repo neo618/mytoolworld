@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 contextBridge.exposeInMainWorld('electronAPI', {
   getAppVersion: () => ipcRenderer.invoke('app:getVersion'),
   getAppPath: (name) => ipcRenderer.invoke('app:getPath', name),
+  onShowAbout: (callback) => ipcRenderer.on('app:showAbout', () => callback()),
   plugins: {
     scan: () => ipcRenderer.invoke('plugins:scan'),
     importZip: () => ipcRenderer.invoke('plugins:import'),
