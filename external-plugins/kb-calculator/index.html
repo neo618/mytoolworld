@@ -1,0 +1,485 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KB值计算器</title>
+<style>
+  :root {
+    --bg: #0a0e14; --surface: #111720; --surface2: #181f2c;
+    --accent: #06b6d4; --accent2: #3b82f6; --text: #c4cdd7;
+    --text2: #8896a8; --green: #10b981; --orange: #f59e0b;
+    --red: #ef4444; --border: #1e293b;
+    --glow: 0 0 8px rgba(6,182,212,0.3);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Courier New', monospace; background: var(--bg);
+    color: var(--text); min-height: 100vh; overflow-x: hidden;
+  }
+  body::before {
+    content:''; position:fixed; top:0;left:0;right:0;bottom:0;
+    background-image: linear-gradient(rgba(6,182,212,0.03) 1px,transparent 1px),
+      linear-gradient(90deg, rgba(6,182,212,0.03) 1px,transparent 1px);
+    background-size:20px 20px; pointer-events:none; z-index:0;
+  }
+  .app { position:relative; z-index:1; padding:14px 18px; max-width:100%; }
+  .header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; background:var(--surface); border:1px solid var(--border); border-radius:6px; margin-bottom:12px; }
+  .header h1 { font-size:17px; font-weight:400; color:var(--accent); letter-spacing:1px; }
+  .header .badge { font-size:11px; color:var(--text2); background:var(--surface2); padding:3px 8px; border-radius:3px; }
+  .dropzone { border:2px dashed var(--border); border-radius:8px; padding:24px; text-align:center; cursor:pointer; transition:all 0.2s; background:var(--surface); margin-bottom:12px; }
+  .dropzone:hover, .dropzone.dragover { border-color:var(--accent); box-shadow:var(--glow); }
+  .dropzone .icon { font-size:32px; margin-bottom:6px; }
+  .dropzone p { font-size:13px; color:var(--text2); }
+  .dropzone .hint { font-size:10px; color:var(--text2); margin-top:3px; opacity:0.6; }
+  input[type="file"] { display:none; }
+  .section { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:12px; margin-bottom:12px; }
+  .section-title { font-size:12px; color:var(--accent); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:6px; }
+  .data-table-wrap { max-height:240px; overflow:auto; }
+  .data-table { width:100%; border-collapse:collapse; font-size:11px; }
+  .data-table th { position:sticky; top:0; background:var(--surface2); color:var(--accent2); padding:5px 8px; text-align:left; font-weight:400; cursor:pointer; border-bottom:1px solid var(--border); user-select:none; }
+  .data-table th.selected { color:var(--accent); text-shadow:0 0 6px rgba(6,182,212,0.5); }
+  .data-table th.col-conc::after { content:' [L]'; color:var(--accent); }
+  .data-table th.col-resp::after { content:' [B]'; color:var(--orange); }
+  .data-table td { padding:3px 8px; border-bottom:1px solid rgba(30,41,59,0.5); }
+  .data-table tr:hover td { background:rgba(6,182,212,0.04); }
+  .col-map { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+  .col-map label { font-size:11px; color:var(--text2); }
+  .col-map select, .col-map input { font-family:inherit; font-size:11px; background:var(--surface2); color:var(--text); border:1px solid var(--border); padding:3px 6px; border-radius:4px; min-width:90px; }
+  .col-map select:focus, .col-map input:focus { border-color:var(--accent); outline:none; box-shadow:var(--glow); }
+  .btn { font-family:inherit; font-size:12px; padding:5px 14px; border-radius:4px; cursor:pointer; border:1px solid var(--border); background:var(--surface2); color:var(--text); transition:all 0.15s; }
+  .btn:hover { border-color:var(--accent); box-shadow:var(--glow); }
+  .btn-primary { background:var(--accent); color:#0a0e14; border-color:var(--accent); font-weight:700; }
+  .btn-primary:hover { background:#08c4e0; }
+  .btn-sm { padding:3px 10px; font-size:10px; }
+  .btn-group { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .result-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:8px; }
+  .result-card { background:var(--surface2); border:1px solid var(--border); border-radius:6px; padding:10px; text-align:center; }
+  .result-card .label { font-size:9px; color:var(--text2); text-transform:uppercase; letter-spacing:1px; }
+  .result-card .value { font-size:20px; color:var(--accent); margin-top:3px; font-weight:700; }
+  .result-card .unit { font-size:10px; color:var(--text2); }
+  .result-card.highlight { border-color:var(--accent); box-shadow:var(--glow); }
+  .chart-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media(max-width:700px){ .chart-row{grid-template-columns:1fr;} }
+  .chart-box { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:10px; }
+  .chart-box .chart-title { font-size:10px; color:var(--text2); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; }
+  canvas { display:block; width:100%; border-radius:4px; background:#060a0f; }
+  .empty-state { text-align:center; padding:36px 20px; color:var(--text2); }
+  .empty-state .big { font-size:44px; margin-bottom:8px; }
+  .toast { position:fixed; bottom:16px; right:16px; z-index:999; padding:8px 16px; border-radius:6px; font-size:12px; font-family:inherit; animation:fadeInOut 3s ease forwards; pointer-events:none; }
+  .toast.success { background:#065f46; color:#a7f3d0; border:1px solid #10b981; }
+  .toast.error { background:#7f1d1d; color:#fecaca; border:1px solid #ef4444; }
+  @keyframes fadeInOut { 0%{opacity:0;transform:translateY(10px);} 10%{opacity:1;transform:translateY(0);} 80%{opacity:1;} 100%{opacity:0;transform:translateY(-10px);} }
+  ::-webkit-scrollbar { width:4px; height:4px; }
+  ::-webkit-scrollbar-track { background:var(--bg); }
+  ::-webkit-scrollbar-thumb { background:#1e293b; border-radius:3px; }
+  ::-webkit-scrollbar-thumb:hover { background:#334155; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header"><h1>&#9879; KB 值计算器</h1><span class="badge">L + R &#8652; LR</span></div>
+  <div class="dropzone" id="dropzone"><div class="icon">&#128194;</div><p>拖拽 CSV 文件到此处，或点击选择文件</p><p class="hint">支持 .csv 格式，编码 UTF-8 / GBK</p></div>
+  <input type="file" id="fileInput" accept=".csv">
+
+  <div class="section" id="dataSection" style="display:none;">
+    <div class="section-title">&#128203; 数据预览</div>
+    <div class="col-map">
+      <label>配体浓度 [L]: <select id="colConc"><option value="">-- 选择 --</option></select></label>
+      <label>响应/结合 [B]: <select id="colResp"><option value="">-- 选择 --</option></select></label>
+      <label>Bmax(可选): <input type="number" id="bmaxInput" placeholder="自动估算" step="any" style="width:80px;"></label>
+    </div>
+    <div class="data-table-wrap"><table class="data-table" id="dataTable"><thead></thead><tbody></tbody></table></div>
+    <div class="btn-group">
+      <button class="btn btn-primary" id="btnCalc">&#9654; 计算 KB</button>
+      <button class="btn btn-sm" id="btnClear">&#10005; 清除</button>
+    </div>
+  </div>
+
+  <div class="section" id="resultSection" style="display:none;">
+    <div class="section-title">&#128202; 计算结果</div>
+    <div class="result-grid">
+      <div class="result-card highlight"><div class="label">KB (结合常数)</div><div class="value" id="valKB">--</div><div class="unit">M&#8315;&#185;</div></div>
+      <div class="result-card"><div class="label">KD (解离常数)</div><div class="value" id="valKD">--</div><div class="unit">M</div></div>
+      <div class="result-card"><div class="label">pKD</div><div class="value" id="valPKD">--</div><div class="unit">-log&#8321;&#8320; KD</div></div>
+      <div class="result-card"><div class="label">Bmax (最大结合)</div><div class="value" id="valBmax">--</div><div class="unit">单位</div></div>
+      <div class="result-card"><div class="label">R&#178; (拟合度)</div><div class="value" id="valR2">--</div><div class="unit">0~1</div></div>
+      <div class="result-card"><div class="label">数据点数</div><div class="value" id="valN">--</div><div class="unit">个</div></div>
+    </div>
+  </div>
+
+  <div class="chart-row" id="chartSection" style="display:none;">
+    <div class="chart-box"><div class="chart-title">&#128309; 结合曲线 (Saturation Binding)</div><canvas id="chartSaturation" width="500" height="300"></canvas></div>
+    <div class="chart-box"><div class="chart-title">&#128992; Scatchard 图 (B/F vs B)</div><canvas id="chartScatchard" width="500" height="300"></canvas></div>
+  </div>
+
+  <div class="empty-state" id="emptyState"><div class="big">&#128194;</div><p>导入 CSV 数据开始分析</p></div>
+</div>
+<div id="toastContainer"></div>
+
+<script>
+
+// ===================== 数据模型 =====================
+let rawData = null, concCol = -1, respCol = -1;
+
+function $(id) { return document.getElementById(id); }
+function showToast(msg, type) {
+  const el = document.createElement('div');
+  el.className = 'toast ' + (type || 'success');
+  el.textContent = msg;
+  $('toastContainer').appendChild(el);
+  setTimeout(function(){ el.remove(); }, 3100);
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ===================== CSV 解析 =====================
+function parseCSV(text) {
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+  var lines = text.split(/\r?\n/).filter(function(l){ return l.trim(); });
+  if (lines.length < 2) throw new Error('CSV 至少需要表头 + 1 行数据');
+
+  function splitLine(line) {
+    var cols = [], cur = '', inQuote = false;
+    for (var i = 0; i < line.length; i++) {
+      var ch = line[i];
+      if (inQuote) {
+        if (ch === '"') { if (line[i+1]==='"') {cur+='"';i++;} else {inQuote=false;} }
+        else { cur += ch; }
+      } else {
+        if (ch === '"') { inQuote = true; }
+        else if (ch === ',') { cols.push(cur.trim()); cur = ''; }
+        else { cur += ch; }
+      }
+    }
+    cols.push(cur.trim());
+    return cols;
+  }
+
+  var headers = splitLine(lines[0]);
+  var rows = [];
+  for (var i = 1; i < lines.length; i++) {
+    var cols = splitLine(lines[i]);
+    while (cols.length < headers.length) cols.push('');
+    rows.push(cols.slice(0, headers.length));
+  }
+  return { headers: headers, rows: rows };
+}
+
+// ===================== CSV 导入 =====================
+function loadFile(file) {
+  if (!file.name.toLowerCase().endsWith('.csv')) {
+    showToast('请选择 .csv 文件', 'error'); return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      rawData = parseCSV(e.target.result);
+    } catch (err) {
+      try {
+        var bytes = new Uint8Array(e.target.result);
+        var gbkText = new TextDecoder('gbk').decode(bytes);
+        rawData = parseCSV(gbkText);
+      } catch (err2) {
+        showToast('CSV 解析失败：' + err.message, 'error'); return;
+      }
+    }
+    if (rawData.rows.length === 0) { showToast('CSV 无有效数据行', 'error'); rawData = null; return; }
+    renderDataTable();
+  };
+  reader.readAsText(file);
+}
+
+function renderDataTable() {
+  if (!rawData) return;
+  var headers = rawData.headers, rows = rawData.rows;
+
+  $('colConc').innerHTML = '<option value="">-- [L] 配体浓度 --</option>' +
+    headers.map(function(h,i){ return '<option value="'+i+'">'+esc(h)+'</option>'; }).join('');
+  $('colResp').innerHTML = '<option value="">-- [B] 响应值 --</option>' +
+    headers.map(function(h,i){ return '<option value="'+i+'">'+esc(h)+'</option>'; }).join('');
+
+  // 智能匹配
+  var concPats = [/浓度/i,/conc/i,/dose/i,/\[L\]/i,/ligand/i,/配体/i,/^L$/i];
+  var respPats = [/响应/i,/resp/i,/bind/i,/结合/i,/BOUND/i,/B\s*$/i,/signal/i,/^B$/i];
+  var autoConc = -1, autoResp = -1;
+  headers.forEach(function(h,i){
+    if (autoConc<0 && concPats.some(function(p){return p.test(h);})) autoConc=i;
+    if (autoResp<0 && respPats.some(function(p){return p.test(h);})) autoResp=i;
+  });
+  if (autoConc<0 && headers.length>=1) autoConc=0;
+  if (autoResp<0 && headers.length>=2) autoResp=1;
+  if (autoConc>=0) $('colConc').value=autoConc;
+  if (autoResp>=0) $('colResp').value=autoResp;
+  concCol = $('colConc').value!=='' ? parseInt($('colConc').value) : -1;
+  respCol = $('colResp').value!=='' ? parseInt($('colResp').value) : -1;
+
+  // 表头
+  var thead = $('dataTable').querySelector('thead');
+  thead.innerHTML = '<tr>' + headers.map(function(h,i){
+    var cls='';
+    if (Number($('colConc').value)===i) cls='selected col-conc';
+    else if (Number($('colResp').value)===i) cls='selected col-resp';
+    return '<th class="'+cls+'" data-idx="'+i+'">'+esc(h||('Col'+(i+1)))+'</th>';
+  }).join('') + '</tr>';
+
+  thead.querySelectorAll('th').forEach(function(th){
+    th.addEventListener('click', function(){
+      var idx = parseInt(this.dataset.idx);
+      if (Number($('colConc').value)===idx) { $('colConc').value=''; }
+      else if (Number($('colResp').value)===idx) { $('colResp').value=''; }
+      else { $('colConc').value=idx; }
+      concCol = $('colConc').value!=='' ? parseInt($('colConc').value) : -1;
+      respCol = $('colResp').value!=='' ? parseInt($('colResp').value) : -1;
+      renderDataTable();
+    });
+  });
+
+  var displayRows = rows.slice(0, 50);
+  $('dataTable').querySelector('tbody').innerHTML = displayRows.map(function(row){
+    return '<tr>' + row.map(function(c){return '<td>'+esc(c)+'</td>';}).join('') + '</tr>';
+  }).join('');
+  if (rows.length > 50) {
+    $('dataTable').querySelector('tbody').innerHTML +=
+      '<tr><td colspan="'+headers.length+'" style="text-align:center;color:var(--text2);">... 共 '+rows.length+' 行，仅显示前 50 行</td></tr>';
+  }
+
+  $('colConc').onchange = function(){ concCol=this.value!==''?parseInt(this.value):-1; renderDataTable(); };
+  $('colResp').onchange = function(){ respCol=this.value!==''?parseInt(this.value):-1; renderDataTable(); };
+
+  $('dataSection').style.display='block';
+  $('emptyState').style.display='none';
+}
+
+// ===================== 科学计算 =====================
+function linearRegression(ys, xs) {
+  var n = xs.length;
+  if (n < 2) return { a:0, b:0, r2:0 };
+  var sx=0, sy=0, sxx=0, sxy=0, syy=0;
+  for (var i=0; i<n; i++) {
+    sx+=xs[i]; sy+=ys[i]; sxx+=xs[i]*xs[i]; sxy+=xs[i]*ys[i]; syy+=ys[i]*ys[i];
+  }
+  var denom = n*sxx - sx*sx;
+  if (denom===0) return { a:0, b:0, r2:0 };
+  var b = (n*sxy - sx*sy) / denom;
+  var a = (sy - b*sx) / n;
+  var yMean = sy/n, ssRes=0, ssTot=0;
+  for (var i=0; i<n; i++) {
+    var yPred = a + b*xs[i];
+    ssRes += (ys[i]-yPred)*(ys[i]-yPred);
+    ssTot += (ys[i]-yMean)*(ys[i]-yMean);
+  }
+  var r2 = ssTot>0 ? 1 - ssRes/ssTot : 0;
+  return { a:a, b:b, r2:r2 };
+}
+
+function fmtSci(v) {
+  if (v===0) return '0';
+  if (Math.abs(v)>=0.001 && Math.abs(v)<=10000) return v.toPrecision(4);
+  return v.toExponential(3);
+}
+
+function calcKB() {
+  if (!rawData || concCol<0 || respCol<0) {
+    showToast('请先导入 CSV 并选择浓度列和响应列', 'error'); return;
+  }
+
+  var points = [];
+  rawData.rows.forEach(function(row){
+    var conc = parseFloat(row[concCol]);
+    var resp = parseFloat(row[respCol]);
+    if (!isNaN(conc) && !isNaN(resp) && conc>0 && resp>=0) {
+      points.push({ conc:conc, resp:resp });
+    }
+  });
+
+  if (points.length < 3) {
+    showToast('有效数据点不足（至少 3 个点）', 'error'); return;
+  }
+
+  points.sort(function(a,b){ return a.conc-b.conc; });
+
+  var bmaxInput = parseFloat($('bmaxInput').value);
+  var bmaxGiven = !isNaN(bmaxInput) && bmaxInput>0 ? bmaxInput : null;
+
+  // Scatchard 分析：B/F vs B
+  var scatchard = [];
+  var BmaxEstimate = 0;
+  points.forEach(function(p){
+    var B = p.resp;
+    var F = bmaxGiven ? Math.max(0, p.conc - B) : p.conc;
+    if (F>0 && B>0) scatchard.push({ x:B, y:B/F });
+    if (B > BmaxEstimate) BmaxEstimate = B;
+  });
+
+  if (scatchard.length < 3) {
+    showToast('可用于 Scatchard 分析的有效点不足', 'error'); return;
+  }
+
+  var xs = scatchard.map(function(s){return s.x;});
+  var ys = scatchard.map(function(s){return s.y;});
+  var reg = linearRegression(ys, xs);
+  var slope = reg.b, intercept = reg.a;
+
+  var KB = Math.abs(slope);
+  var KD = KB>0 ? 1/KB : Infinity;
+  var BmaxFromReg = KB>0 ? intercept/KB : 0;
+  var finalBmax = bmaxGiven || BmaxFromReg;
+  var pKD = KD>0 && KD<Infinity ? -Math.log10(KD) : 0;
+
+  $('valKB').textContent = KB>0 ? fmtSci(KB) : 'N/A';
+  $('valKD').textContent = KD>0 && KD<Infinity ? fmtSci(KD) : 'N/A';
+  $('valPKD').textContent = pKD>0 ? pKD.toFixed(2) : 'N/A';
+  $('valBmax').textContent = finalBmax>0 ? fmtSci(finalBmax) : 'N/A';
+  $('valR2').textContent = reg.r2.toFixed(4);
+  $('valN').textContent = points.length;
+  $('resultSection').style.display='block';
+  $('chartSection').style.display='block';
+
+  drawSaturation(points, KB, finalBmax);
+  drawScatchard(scatchard, reg, KB, finalBmax);
+}
+
+// ===================== 图表绘制 =====================
+function initCanvas(canvas, w, h) {
+  var dpr = window.devicePixelRatio || 1;
+  canvas.width = w*dpr; canvas.height = h*dpr;
+  canvas.style.width = w+'px'; canvas.style.height = h+'px';
+  var ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  return ctx;
+}
+
+function vfmt(v) {
+  if (Math.abs(v)>=1e6 || (Math.abs(v)<=1e-4 && v!==0)) return v.toExponential(1);
+  if (v===Math.floor(v)) return v.toString();
+  return v.toPrecision(3);
+}
+
+function drawGrid(ctx, w, h, xRange, yRange, xLabel, yLabel) {
+  ctx.strokeStyle='rgba(30,41,59,0.6)'; ctx.lineWidth=0.5;
+  ctx.fillStyle='#8896a8'; ctx.font='9px "Courier New", monospace';
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+
+  var margin = { top:18, right:18, bottom:36, left:50 };
+  var pw = w-margin.left-margin.right;
+  var ph = h-margin.top-margin.bottom;
+
+  for (var i=0; i<=5; i++) {
+    var y = margin.top + ph*i/5;
+    var val = yRange[1] - (yRange[1]-yRange[0])*i/5;
+    ctx.beginPath(); ctx.moveTo(margin.left, y); ctx.lineTo(w-margin.right, y); ctx.stroke();
+    ctx.fillText(vfmt(val), margin.left-4, y);
+  }
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  for (var j=0; j<=5; j++) {
+    var x = margin.left + pw*j/5;
+    var val = xRange[0] + (xRange[1]-xRange[0])*j/5;
+    ctx.beginPath(); ctx.moveTo(x, margin.top); ctx.lineTo(x, h-margin.bottom); ctx.stroke();
+    ctx.fillText(vfmt(val), x, h-margin.bottom+6);
+  }
+  ctx.fillStyle='#06b6d4'; ctx.font='10px "Courier New", monospace';
+  ctx.textAlign='center'; ctx.fillText(xLabel, w/2, h-2);
+  ctx.save(); ctx.translate(10, h/2); ctx.rotate(-Math.PI/2); ctx.fillText(yLabel, 0, 0); ctx.restore();
+
+  ctx.strokeStyle='#334155'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(margin.left, margin.top);
+  ctx.lineTo(margin.left, h-margin.bottom); ctx.lineTo(w-margin.right, h-margin.bottom); ctx.stroke();
+  return margin;
+}
+
+function drawSaturation(points, KB, Bmax) {
+  var canvas = $('chartSaturation');
+  var w = canvas.clientWidth || 500, h = 300;
+  var ctx = initCanvas(canvas, w, h);
+  ctx.clearRect(0,0,w,h);
+
+  var concs = points.map(function(p){return p.conc;});
+  var resps = points.map(function(p){return p.resp;});
+  var xMin = Math.max(0, Math.min.apply(null,concs)*0.9);
+  var xMax = Math.max.apply(null,concs)*1.1;
+  var yMin = 0;
+  var yMax = Math.max(Bmax*1.1, Math.max.apply(null,resps)*1.15);
+
+  var margin = drawGrid(ctx, w, h, [xMin,xMax], [yMin,yMax], '[L] (M)', 'B');
+
+  var pw = w-margin.left-margin.right;
+  var ph = h-margin.top-margin.bottom;
+  function toX(v){return margin.left + pw*(v-xMin)/(xMax-xMin);}
+  function toY(v){return margin.top + ph*(1 - (v-yMin)/(yMax-yMin));}
+
+  if (Bmax>0 && KB>0) {
+    var KD = 1/KB;
+    ctx.beginPath(); ctx.strokeStyle='#06b6d4'; ctx.lineWidth=2;
+    var first=true;
+    for (var i=0; i<=200; i++) {
+      var conc = xMin + (xMax-xMin)*i/200;
+      var B = Bmax*conc/(KD+conc);
+      if (first) { ctx.moveTo(toX(conc),toY(B)); first=false; }
+      else ctx.lineTo(toX(conc),toY(B));
+    }
+    ctx.stroke();
+  }
+
+  ctx.fillStyle='#3b82f6';
+  points.forEach(function(p){
+    ctx.beginPath(); ctx.arc(toX(p.conc),toY(p.resp),3,0,Math.PI*2); ctx.fill();
+  });
+}
+
+function drawScatchard(points, reg, KB, Bmax) {
+  var canvas = $('chartScatchard');
+  var w = canvas.clientWidth || 500, h = 300;
+  var ctx = initCanvas(canvas, w, h);
+  ctx.clearRect(0,0,w,h);
+
+  var xs = points.map(function(p){return p.x;});
+  var ys = points.map(function(p){return p.y;});
+  var xMin = 0, xMax = Math.max.apply(null,xs)*1.15;
+  var yMin = 0, yMax = Math.max.apply(null,ys)*1.15;
+
+  var margin = drawGrid(ctx, w, h, [xMin,xMax], [yMin,yMax], 'B (Bound)', 'B/F');
+
+  var pw = w-margin.left-margin.right;
+  var ph = h-margin.top-margin.bottom;
+  function toX(v){return margin.left + pw*(v-xMin)/(xMax-xMin);}
+  function toY(v){return margin.top + ph*(1 - (v-yMin)/(yMax-yMin));}
+
+  // 回归线
+  var x0 = xMin, x1 = xMax;
+  var y0 = reg.a + reg.b*x0, y1 = reg.a + reg.b*x1;
+  ctx.beginPath(); ctx.strokeStyle='#f59e0b'; ctx.lineWidth=2; ctx.setLineDash([4,4]);
+  ctx.moveTo(toX(x0), toY(y0)); ctx.lineTo(toX(x1), toY(y1)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // 数据点
+  ctx.fillStyle='#3b82f6';
+  points.forEach(function(p){
+    ctx.beginPath(); ctx.arc(toX(p.x),toY(p.y),3,0,Math.PI*2); ctx.fill();
+  });
+}
+
+// ===================== 事件绑定 =====================
+$('dropzone').addEventListener('click', function(){ $('fileInput').click(); });
+$('dropzone').addEventListener('dragover', function(e){ e.preventDefault(); this.classList.add('dragover'); });
+$('dropzone').addEventListener('dragleave', function(){ this.classList.remove('dragover'); });
+$('dropzone').addEventListener('drop', function(e){
+  e.preventDefault(); this.classList.remove('dragover');
+  var file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+$('fileInput').addEventListener('change', function(){
+  if (this.files[0]) loadFile(this.files[0]);
+});
+$('btnCalc').addEventListener('click', calcKB);
+$('btnClear').addEventListener('click', function(){
+  rawData=null; concCol=-1; respCol=-1;
+  $('dataSection').style.display='none';
+  $('resultSection').style.display='none';
+  $('chartSection').style.display='none';
+  $('emptyState').style.display='block';
+  $('colConc').innerHTML='<option value="">-- 选择 --</option>';
+  $('colResp').innerHTML='<option value="">-- 选择 --</option>';
+  $('bmaxInput').value='';
+});
+</script></body></html>

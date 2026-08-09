@@ -1,0 +1,10 @@
+{
+  "id": "com.mytool.kb-calculator",
+  "name": "KB值计算器",
+  "version": "1.0.0",
+  "description": "导入CSV文件计算配体-受体结合KB值，支持数据可视化与曲线拟合",
+  "author": "MyTool",
+  "category": "科研工具",
+  "icon": "assets/icon.png",
+  "main": "index.html"
+}

@@ -1,0 +1,62 @@
+{
+  "name": "mytoolworld",
+  "version": "1.0.0",
+  "description": "MyToolWorld - 个人插件化工作台",
+  "main": "electron/main.js",
+  "build": {
+    "appId": "com.mytoolworld.workbench",
+    "productName": "MyToolWorld",
+    "directories": {
+      "output": "C:/mytool-release"
+    },
+    "files": [
+      "dist/web/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "MyToolWorld"
+    }
+  },
+  "scripts": {
+    "dev": "concurrently \"cross-env NODE_ENV=development vite\" \"wait-on http://localhost:5173 && cross-env NODE_ENV=development electron .\"",
+    "dev:web": "vite",
+    "build": "vite build",
+    "build:electron": "vite build && electron-builder --win --x64",
+    "preview": "vite preview"
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "adm-zip": "^0.5.16",
+    "pinia": "^4.0.2",
+    "vue": "^3.5.41",
+    "vue-router": "^4.6.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.8",
+    "concurrently": "^10.0.4",
+    "cross-env": "^10.1.0",
+    "electron": "^28.3.3",
+    "electron-builder": "^26.15.3",
+    "vite": "^8.2.1",
+    "wait-on": "^9.1.0"
+  }
+}
