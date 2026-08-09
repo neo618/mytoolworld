@@ -6,3 +6,4 @@ dist/*.yaml
 dist/win-unpacked/
 .easyclaw/
 *.log
+*_metadata.json
