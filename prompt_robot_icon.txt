@@ -1,0 +1,11 @@
+App icon design: A minimal flat design app icon on a rounded square canvas with slightly rounded corners, based on this reference style.
+
+Center composition, LARGE elements filling most of the canvas: A cute minimalist white robot with dark navy blue accents (face screen with two simple white dot eyes, joint details, 3-fingered hands) positioned at the top-center, leaning forward. Below it, a 2x2 grid of four large rounded-corner jigsaw puzzle pieces that the robot is assembling: top-left gradient orange to coral red, top-right bright purple, bottom-left bright cyan, bottom-right golden orange. The robot's hands rest on the top two puzzle pieces as if fitting them together.
+
+The robot represents AI, and the puzzle pieces represent modular toolkit/library components.
+
+Background: Pure white color, clean and bright. 
+Overall style: flat minimal, modern tech, clean vector aesthetic, no heavy shadows, no outlines on puzzle pieces, very thin navy outlines on robot parts, no text, no watermarks, highly recognizable at small sizes, iOS/macOS app icon style.
+
+LARGE elements with minimal negative space, bold and prominent, balanced composition. 
+Quality: meticulously crafted, crisp edges, professional app icon design, minimal and bold, elements fill the canvas.

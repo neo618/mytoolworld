@@ -89,11 +89,16 @@ app.whenReady().then(() => {
         {
           label: '关于我的工具世界',
           click: () => {
-            console.log('[About] Menu clicked, sending to renderer...')
             if (mainWindow && !mainWindow.isDestroyed()) {
               mainWindow.webContents.send('app:showAbout')
-            } else {
-              console.log('[About] mainWindow not available!')
+            }
+          }
+        },
+        {
+          label: '如何增加一个新的插件',
+          click: () => {
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              mainWindow.webContents.send('app:showPluginGuide')
             }
           }
         }

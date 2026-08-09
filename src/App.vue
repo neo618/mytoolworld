@@ -2,6 +2,7 @@
   <div class="app" :style="accentVars">
     <Sidebar />
     <AboutDialog />
+    <PluginGuideDialog />
     <div class="main">
       <Topbar />
       <div class="content">
@@ -20,6 +21,7 @@ import { computed, onMounted } from 'vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Topbar from '@/components/Topbar.vue'
 import AboutDialog from '@/components/AboutDialog.vue'
+import PluginGuideDialog from '@/components/PluginGuideDialog.vue'
 import { useAppStore } from '@/stores/app'
 
 const store = useAppStore()
